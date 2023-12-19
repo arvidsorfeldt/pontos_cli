@@ -4,10 +4,40 @@ use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, DisplayFromStr};
 use std::env;
 
+const PONTOS_URL: &str = "https://pontos.ri.se/api";
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    get_vessel_ids().await?;
+    let data = get_vessel_data().await?;
+    let mut writer = csv::Writer::from_path("records.csv").unwrap();
+    for record in data {
+        writer.serialize(record)?;
+    }
+    writer.flush()?;
+
+    Ok(())
+}
+
+fn get_pontos_token() -> String {
+    env::var("PONTOS_TOKEN").expect("The PONTOS_TOKEN environment variable has not been set.")
+}
+
+async fn get_vessel_ids() -> Result<(), Box<dyn std::error::Error>> {
     let pontos_token = get_pontos_token();
-    let client = Postgrest::new("https://pontos.ri.se/api");
+    let client = Postgrest::new(PONTOS_URL);
+    let resp = client
+        .from("vessel_ids")
+        .auth(pontos_token)
+        .execute()
+        .await?;
+    println!("{}", resp.text().await?);
+    Ok(())
+}
+
+async fn get_vessel_data() -> Result<Vec<ShipData>, Box<dyn std::error::Error>> {
+    let pontos_token = get_pontos_token();
+    let client = Postgrest::new(PONTOS_URL);
     let resp = client
         .from("vessel_data")
         .auth(pontos_token)
@@ -20,18 +50,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .select("time,parameter_id,value")
         .execute()
         .await?;
-    let data: Vec<ShipData> = serde_json::from_str(&resp.text().await?).unwrap();
-
-    let mut writer = csv::Writer::from_path("records.csv").unwrap();
-    for record in data {
-        let _ = writer.serialize(record);
-    }
-    let _ = writer.flush();
-    Ok(())
-}
-
-fn get_pontos_token() -> String {
-    env::var("PONTOS_TOKEN").expect("The PONTOS_TOKEN environment variable has not been set.")
+    Ok(serde_json::from_str(&resp.text().await?).unwrap())
 }
 
 #[serde_as]
