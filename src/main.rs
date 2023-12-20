@@ -1,16 +1,11 @@
-mod pontos;
-
-use pontos::{get_vessel_data, get_vessel_ids};
-
+//! PONTOS data hub CLI
+#![warn(missing_docs)]
+extern crate pontos_cli;
+use pontos_cli::io::day_to_csv;
+use pontos_cli::io::list_vessels;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    get_vessel_ids().await?;
-    let data = get_vessel_data().await?;
-    let mut writer = csv::Writer::from_path("records.csv").unwrap();
-    for record in data {
-        writer.serialize(record)?;
-    }
-    writer.flush()?;
-
+    list_vessels().await?;
+    day_to_csv("2023-11-07").await?;
     Ok(())
 }
