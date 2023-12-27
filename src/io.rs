@@ -1,14 +1,15 @@
+use chrono::NaiveDate;
 use csv::Writer;
 use futures::join;
 
 use crate::data::{get_other_data, get_vessel_ids, get_vessel_position_data};
 
 fn output_csv<T: serde::Serialize>(
-    date: &str,
+    date: NaiveDate,
     parameter: String,
     list: Vec<T>,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let mut writer = Writer::from_path(parameter + "_" + date + ".csv").unwrap();
+    let mut writer = Writer::from_path(parameter + "_" + &date.to_string() + ".csv").unwrap();
     for record in list {
         writer.serialize(record)?;
     }
@@ -17,7 +18,7 @@ fn output_csv<T: serde::Serialize>(
 }
 
 /// Saves all available data for a given day in separate csv files.
-pub async fn day_to_csv(date: &str) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn day_to_csv(date: NaiveDate) -> Result<(), Box<dyn std::error::Error>> {
     let positions = get_vessel_position_data(date);
     let other_data = get_other_data(date);
     let (positions, other_data) = join!(positions, other_data);
@@ -29,7 +30,7 @@ pub async fn day_to_csv(date: &str) -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
-/// Lists the availavle vessels on the PONTOS data hub.
+/// Lists the available vessels on the PONTOS data hub.
 pub async fn list_vessels() -> Result<(), Box<dyn std::error::Error>> {
     let vessels = get_vessel_ids().await?;
     for vessel in vessels {

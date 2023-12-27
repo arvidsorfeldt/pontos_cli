@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Duration, NaiveDate, Utc};
 use futures::{future::join_all, join};
 use postgrest::Postgrest;
 use serde::{Deserialize, Serialize};
@@ -25,7 +25,7 @@ pub async fn get_vessel_ids() -> Result<Vec<Vessel>, Box<dyn std::error::Error>>
 }
 
 pub async fn get_other_data(
-    date: &str,
+    date: NaiveDate,
 ) -> Result<Vec<ParameterAndData>, Box<dyn std::error::Error>> {
     let futures = vec![
         get_vessel_data(date, Parameter::Speed),
@@ -48,7 +48,7 @@ pub async fn get_other_data(
 }
 
 pub async fn get_vessel_position_data(
-    date: &str,
+    date: NaiveDate,
 ) -> Result<Vec<Position>, Box<dyn std::error::Error>> {
     let longitude = get_vessel_data(date, Parameter::Longitude);
     let latitude = get_vessel_data(date, Parameter::Latitude);
@@ -86,7 +86,7 @@ fn pair_longitude_latitude(longitude: Vec<ShipData>, latitude: Vec<ShipData>) ->
 }
 
 pub async fn get_vessel_data(
-    date: &str,
+    date: NaiveDate,
     parameter: Parameter,
 ) -> Result<(Parameter, Vec<ShipData>), Box<dyn std::error::Error>> {
     let pontos_token = get_pontos_token();
@@ -96,8 +96,8 @@ pub async fn get_vessel_data(
         .auth(pontos_token)
         .eq("vessel_id", "name_SD401Fredrika")
         .eq("parameter_id", parameter.as_str())
-        .gte("time", date)
-        .lt("time", "2023-11-8")
+        .gte("time", date.to_string())
+        .lt("time", (date + Duration::days(1)).to_string())
         //.limit(1000)
         .select("time,parameter_id,value")
         .execute()
