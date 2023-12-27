@@ -5,7 +5,9 @@ edition = "2021"
 authors = ["Arvid Sörfeldt <sorfeldt@student.chalmers.se>"]
 description = "A CLI for accessing the PONTOS datahub"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "pontoslib"
+path = "src/lib.rs"
 
 [dependencies]
 chrono = { version = "0.4.31", features = ["serde"] }
