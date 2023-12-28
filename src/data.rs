@@ -121,25 +121,15 @@ pub struct ShipData {
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all(serialize = "snake_case"))]
 pub enum Parameter {
-    #[serde(rename(deserialize = "positioningsystem_latitude_deg_1"))]
     Latitude,
-    #[serde(rename(deserialize = "positioningsystem_longitude_deg_1"))]
     Longitude,
-    #[serde(rename(deserialize = "positioningsystem_sog_kn_1"))]
     Speed,
-    #[serde(rename(deserialize = "steering_order_deg_1"))]
     SteeringOrder,
-    #[serde(rename(deserialize = "steering_angle_deg_1"))]
     SteeringAngle,
-    #[serde(rename(deserialize = "positioningsystem_heading_deg_1"))]
     Heading,
-    #[serde(rename(deserialize = "positioningsystem_cog_deg_1"))]
     Course,
-    #[serde(rename(deserialize = "enginemain_fuelcons_lph_1"))]
     FuelConsumption,
-    #[serde(rename(deserialize = "rudder_order_deg_1"))]
     RudderOrder,
-    #[serde(rename(deserialize = "rudder_angle_deg_1"))]
     RudderAngle,
 }
 
