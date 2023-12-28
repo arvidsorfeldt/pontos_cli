@@ -25,17 +25,18 @@ pub async fn get_vessel_ids() -> Result<Vec<Vessel>, Box<dyn std::error::Error>>
 }
 
 pub async fn get_other_data(
+    vessel_id: &str,
     date: NaiveDate,
 ) -> Result<Vec<ParameterAndData>, Box<dyn std::error::Error>> {
     let futures = vec![
-        get_vessel_data(date, Parameter::Speed),
-        get_vessel_data(date, Parameter::SteeringOrder),
-        get_vessel_data(date, Parameter::SteeringAngle),
-        get_vessel_data(date, Parameter::Heading),
-        get_vessel_data(date, Parameter::Course),
-        get_vessel_data(date, Parameter::FuelConsumption),
-        get_vessel_data(date, Parameter::RudderOrder),
-        get_vessel_data(date, Parameter::RudderAngle),
+        get_vessel_data(vessel_id, date, Parameter::Speed),
+        get_vessel_data(vessel_id, date, Parameter::SteeringOrder),
+        get_vessel_data(vessel_id, date, Parameter::SteeringAngle),
+        get_vessel_data(vessel_id, date, Parameter::Heading),
+        get_vessel_data(vessel_id, date, Parameter::Course),
+        get_vessel_data(vessel_id, date, Parameter::FuelConsumption),
+        get_vessel_data(vessel_id, date, Parameter::RudderOrder),
+        get_vessel_data(vessel_id, date, Parameter::RudderAngle),
     ];
     let results = join_all(futures).await;
     let data: Vec<ParameterAndData> = results.into_iter().map(Result::unwrap).collect();
@@ -48,10 +49,11 @@ pub async fn get_other_data(
 }
 
 pub async fn get_vessel_position_data(
+    vessel_id: &str,
     date: NaiveDate,
 ) -> Result<Vec<Position>, Box<dyn std::error::Error>> {
-    let longitude = get_vessel_data(date, Parameter::Longitude);
-    let latitude = get_vessel_data(date, Parameter::Latitude);
+    let longitude = get_vessel_data(vessel_id, date, Parameter::Longitude);
+    let latitude = get_vessel_data(vessel_id, date, Parameter::Latitude);
     let (longitude, latitude) = join!(longitude, latitude);
     let (_, longitude) = longitude?; // Throw away parameter info
     let (_, latitude) = latitude?; // Throw away parameter info
@@ -86,6 +88,7 @@ fn pair_longitude_latitude(longitude: Vec<ShipData>, latitude: Vec<ShipData>) ->
 }
 
 pub async fn get_vessel_data(
+    vessel_id: &str,
     date: NaiveDate,
     parameter: Parameter,
 ) -> Result<(Parameter, Vec<ShipData>), Box<dyn std::error::Error>> {
@@ -94,7 +97,7 @@ pub async fn get_vessel_data(
     let resp = client
         .from("vessel_data")
         .auth(pontos_token)
-        .eq("vessel_id", "name_SD401Fredrika")
+        .eq("vessel_id", vessel_id)
         .eq("parameter_id", parameter.as_str())
         .gte("time", date.to_string())
         .lt("time", (date + Duration::days(1)).to_string())

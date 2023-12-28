@@ -18,9 +18,12 @@ fn output_csv<T: serde::Serialize>(
 }
 
 /// Saves all available data for a given day in separate csv files.
-pub async fn day_to_csv(date: NaiveDate) -> Result<(), Box<dyn std::error::Error>> {
-    let positions = get_vessel_position_data(date);
-    let other_data = get_other_data(date);
+pub async fn day_to_csv(
+    vessel_id: &str,
+    date: NaiveDate,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let positions = get_vessel_position_data(vessel_id, date);
+    let other_data = get_other_data(vessel_id, date);
     let (positions, other_data) = join!(positions, other_data);
     output_csv(date, "position".to_string(), positions?)?;
 
