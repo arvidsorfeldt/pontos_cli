@@ -24,8 +24,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 #[derive(Parser)]
 #[command(name = "pontos")]
 #[command(bin_name = "pontos")]
+/// A CLI utility for downloading operational data from the PONTOS data hub.
 enum PontosCli {
+    /// List available vessel ids on the PONTOS data hub.
     List,
+    /// Download daily data as csv files.
     Data(DataArgs),
 }
 
